@@ -1,10 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [nameInput, setNameInput] = useState('');
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const savedName = window.localStorage.getItem('anatema_name');
+    if (savedName) setName(savedName);
+
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 17) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+  }, []);
+
+  const saveName = () => {
+    if (!nameInput.trim()) return;
+    window.localStorage.setItem('anatema_name', nameInput.trim());
+    setName(nameInput.trim());
+  };
 
   const askAnatema = async () => {
     if (!question.trim() || loading) return;
@@ -34,6 +53,13 @@ export default function Home() {
     }
   };
 
+  const handleNameKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveName();
+    }
+  };
+
   return (
     <div style={{ background: '#0A0908', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#EDEAE3', display: 'flex', flexDirection: 'column' }}>
       <style>{`
@@ -55,11 +81,28 @@ export default function Home() {
       <div style={{ flex: 1, maxWidth: 760, width: '100%', margin: '0 auto', padding: '20px 20px 0', display: 'flex', flexDirection: 'column' }}>
         {messages.length === 0 && (
           <div style={{ margin: 'auto', textAlign: 'center', padding: '0 20px' }}>
+            {name ? (
+              <div style={{ fontSize: 15, color: '#9A948A', marginBottom: 10 }}>{greeting}, {name}.</div>
+            ) : (
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 14, color: '#9A948A', marginBottom: 10 }}>{greeting}. What should I call you?</div>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                  <input
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    onKeyDown={handleNameKeyDown}
+                    placeholder="Your name"
+                    style={{ background: '#161412', border: '1px solid #2A2621', borderRadius: 8, padding: '8px 12px', color: '#EDEAE3', fontSize: 14, outline: 'none' }}
+                  />
+                  <button onClick={saveName} style={{ background: '#E8382B', border: 'none', color: '#0A0908', padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Save</button>
+                </div>
+              </div>
+            )}
             <h1 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 900, fontSize: 'clamp(28px, 6vw, 44px)', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 16 }}>
-              Every build has a <span style={{ color: '#E8382B' }}>wrong turn</span> waiting.
+              Keep <span style={{ color: '#E8382B' }}>building</span>.
             </h1>
             <p style={{ fontSize: 15.5, color: '#9A948A', marginBottom: 0 }}>
-              Ask about a part, a wiring issue, broken code, or a mechanical fit.
+              For people who take their builds seriously.
             </p>
           </div>
         )}
